@@ -31,6 +31,7 @@
       height: 100%;
       display: block;
       cursor: grab;
+      touch-action: none;
     }
     #globe-canvas:active {
       cursor: grabbing;
@@ -42,6 +43,7 @@
     }
     .custom-scroll::-webkit-scrollbar {
       width: 5px;
+      height: 5px;
     }
     .custom-scroll::-webkit-scrollbar-track {
       background: transparent;
@@ -50,6 +52,13 @@
       background: color-mix(in srgb, var(--muted-foreground) 35%, transparent);
       border-radius: 9999px;
     }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="bg-[var(--background)] text-[var(--foreground)] antialiased relative w-full h-full overflow-hidden">
@@ -57,168 +66,193 @@
   <!-- Fullscreen 3D WebGL Canvas -->
   <canvas id="globe-canvas"></canvas>
 
-  <!-- Top Left: Title, Presets & 197-Country Directory -->
-  <div class="absolute top-3 left-3 bottom-16 flex flex-col gap-2.5 pointer-events-none z-10 w-80 max-w-[calc(100vw-1.5rem)]">
+  <!-- Top Left (Desktop) / Top Bar (Mobile): Title, Presets & 198-Country Directory -->
+  <div id="left-column" class="absolute top-2 left-2 right-2 md:top-3 md:left-3 md:right-auto flex flex-col gap-2 pointer-events-none z-20 md:w-80 max-h-[calc(100vh-4.5rem)]">
     <!-- Header & Quick Presets -->
-    <div class="glass-panel border border-[var(--border)] rounded-xl p-3.5 shadow-lg pointer-events-auto">
+    <div id="header-panel" class="glass-panel border border-[var(--border)] rounded-xl p-2.5 sm:p-3.5 shadow-lg pointer-events-auto shrink-0">
       <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span>
-          <h1 class="text-sm font-semibold tracking-tight text-[var(--foreground)]">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shrink-0"></span>
+          <h1 class="text-xs sm:text-sm font-semibold tracking-tight text-[var(--foreground)] truncate">
             3D World Flag Globe
           </h1>
         </div>
-        <span id="country-count-badge" class="px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]">
-          198 Countries
-        </span>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span id="country-count-badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]">
+            198 Countries
+          </span>
+          <button id="toggle-header-btn" type="button" title="Minimize or expand header presets" class="px-2 py-0.5 rounded text-[11px] font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition">
+            ▾
+          </button>
+        </div>
       </div>
-      <p class="text-xs text-[var(--muted-foreground)] mt-1 leading-snug">
-        All 198 nations &amp; territories (including Greenland) mapped with high-resolution flags &amp; India's 24-spoke <strong>Ashoka Chakra</strong> over deep bathymetric oceans.
-      </p>
 
-      <div class="mt-2.5 pt-2 border-t border-[var(--border)] flex flex-wrap gap-1">
-        <button data-preset="india" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition">
-          🇮🇳 India (Chakra)
-        </button>
-        <button data-preset="eurasia" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition">
-          🌍 Eurasia
-        </button>
-        <button data-preset="americas" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition">
-          🌎 Americas
-        </button>
-        <button data-preset="africa" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition">
-          🌍 Africa
-        </button>
-        <button data-preset="oceania" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition">
-          🌏 Oceania
-        </button>
+      <div id="header-details">
+        <p class="hidden sm:block text-xs text-[var(--muted-foreground)] mt-1 leading-snug">
+          All 198 nations &amp; territories (including Greenland) mapped with high-resolution flags &amp; India's 24-spoke <strong>Ashoka Chakra</strong> over deep bathymetric oceans.
+        </p>
+
+        <div class="mt-2 pt-2 border-t border-[var(--border)] flex items-center gap-1 overflow-x-auto no-scrollbar sm:flex-wrap">
+          <button data-preset="india" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition shrink-0">
+            🇮🇳 India (Chakra)
+          </button>
+          <button data-preset="eurasia" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition shrink-0">
+            🌍 Eurasia
+          </button>
+          <button data-preset="americas" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition shrink-0">
+            🌎 Americas
+          </button>
+          <button data-preset="africa" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition shrink-0">
+            🌍 Africa
+          </button>
+          <button data-preset="oceania" class="preset-btn px-2 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition shrink-0">
+            🌏 Oceania
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Searchable All-198 Countries Directory -->
-    <div class="glass-panel border border-[var(--border)] rounded-xl p-3 shadow-lg pointer-events-auto flex flex-col flex-1 min-h-0">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold text-[var(--foreground)]">World Directory (198)</span>
-        <span id="filtered-count" class="text-xs text-[var(--muted-foreground)]">Showing 198</span>
+    <!-- Searchable All-198 Countries Directory (Collapsible) -->
+    <div id="directory-panel" class="glass-panel border border-[var(--border)] rounded-xl p-2.5 sm:p-3 shadow-lg pointer-events-auto flex flex-col min-h-0">
+      <div id="directory-header" class="flex items-center justify-between gap-2 cursor-pointer select-none">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-xs font-semibold text-[var(--foreground)] truncate">World Directory (198)</span>
+          <span id="filtered-count" class="text-[11px] text-[var(--muted-foreground)] shrink-0">Showing 198</span>
+        </div>
+        <button id="toggle-directory-btn" type="button" class="px-2 py-0.5 rounded text-[11px] font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:opacity-90 transition shrink-0">
+          Minimize ▾
+        </button>
       </div>
 
-      <!-- Search Input -->
-      <input
-        id="country-search"
-        type="text"
-        placeholder="Search any of 198 countries..."
-        class="w-full px-2.5 py-1.5 rounded-lg text-xs bg-[var(--background)] text-[var(--foreground)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] mb-2"
-      />
+      <div id="directory-body" class="mt-2 pt-2 border-t border-[var(--border)] flex flex-col min-h-0">
+        <!-- Search Input -->
+        <input
+          id="country-search"
+          type="text"
+          placeholder="Search any of 198 countries, ISO or .tld..."
+          class="w-full px-2.5 py-1.5 rounded-lg text-xs bg-[var(--background)] text-[var(--foreground)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] mb-2 shrink-0"
+        />
 
-      <!-- Continent Filter Tabs -->
-      <div class="flex flex-wrap gap-1 mb-2" id="region-tabs">
-        <button data-region="ALL" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)]">All</button>
-        <button data-region="Asia" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">Asia (49)</button>
-        <button data-region="Europe" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">Europe (45)</button>
-        <button data-region="Africa" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">Africa (54)</button>
-        <button data-region="Americas" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">Americas (36)</button>
-        <button data-region="Oceania" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">Oceania (14)</button>
+        <!-- Continent Filter Tabs -->
+        <div class="flex items-center gap-1 mb-2 overflow-x-auto no-scrollbar sm:flex-wrap shrink-0" id="region-tabs">
+          <button data-region="ALL" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] shrink-0">All</button>
+          <button data-region="Asia" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] shrink-0">Asia (49)</button>
+          <button data-region="Europe" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] shrink-0">Europe (45)</button>
+          <button data-region="Africa" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] shrink-0">Africa (54)</button>
+          <button data-region="Americas" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] shrink-0">Americas (36)</button>
+          <button data-region="Oceania" class="region-tab px-2 py-0.5 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] shrink-0">Oceania (14)</button>
+        </div>
+
+        <!-- Scrollable List of 198 Countries -->
+        <div id="country-list" class="custom-scroll overflow-y-auto max-h-[36vh] md:max-h-[calc(100vh-19.5rem)] space-y-1 pr-1"></div>
       </div>
-
-      <!-- Scrollable List of 197 Countries -->
-      <div id="country-list" class="custom-scroll overflow-y-auto flex-1 space-y-1 pr-1"></div>
     </div>
   </div>
 
-  <!-- Top Right: Selected Country High-DPI Flag & Encyclopedia Inspector -->
-  <div class="absolute top-3 right-3 bottom-16 pointer-events-none z-10 flex flex-col">
-    <div class="glass-panel border border-[var(--border)] rounded-xl p-3.5 shadow-lg pointer-events-auto w-80 max-h-full flex flex-col">
-      <div class="flex items-center justify-between border-b border-[var(--border)] pb-2 mb-2.5 shrink-0">
-        <div class="min-w-0 pr-2">
-          <div class="text-sm font-semibold text-[var(--foreground)] truncate" id="inspect-title">Republic of India</div>
-          <div class="text-xs text-[var(--muted-foreground)] truncate" id="inspect-coords">22.0° N, 79.0° E • Asia</div>
+  <!-- Top Right (Desktop) / Bottom Sheet (Mobile): Selected Country High-DPI Flag & Encyclopedia Inspector -->
+  <div id="inspector-container" class="absolute bottom-14 left-2 right-2 md:top-3 md:right-3 md:left-auto md:bottom-auto pointer-events-none z-10 flex flex-col md:w-80 max-h-[52vh] md:max-h-[calc(100vh-4.5rem)]">
+    <div id="inspector-panel" class="glass-panel border border-[var(--border)] rounded-xl p-2.5 sm:p-3.5 shadow-lg pointer-events-auto w-full max-h-full flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between gap-2 shrink-0">
+        <div id="inspector-header-title" class="flex items-center gap-2 min-w-0 pr-1 cursor-pointer">
+          <canvas id="mini-flag-canvas" width="60" height="36" class="w-7 h-4 rounded-sm border border-white/25 shrink-0 object-cover"></canvas>
+          <div class="min-w-0">
+            <div class="text-xs sm:text-sm font-semibold text-[var(--foreground)] truncate" id="inspect-title">Republic of India</div>
+            <div class="text-[11px] text-[var(--muted-foreground)] truncate" id="inspect-coords">22.0° N, 79.0° E • Asia</div>
+          </div>
         </div>
-        <button id="zoom-country-btn" class="px-2.5 py-1 text-xs rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition shrink-0">
-          Zoom In
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="zoom-country-btn" type="button" class="px-2 py-1 text-xs rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition shrink-0">
+            Zoom In
+          </button>
+          <button id="toggle-inspector-btn" type="button" class="px-2 py-1 text-xs rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] font-medium hover:opacity-90 transition shrink-0">
+            Minimize ▾
+          </button>
+        </div>
       </div>
 
-      <!-- High-DPI Live Vector Flag Preview -->
-      <div class="relative rounded-lg overflow-hidden border border-[var(--border)] bg-black/20 flex items-center justify-center shrink-0">
-        <canvas id="flag-preview-canvas" width="480" height="270" class="w-full h-28 object-cover"></canvas>
-      </div>
-
-      <div class="mt-2 flex items-center justify-between text-xs text-[var(--muted-foreground)] shrink-0">
-        <div class="flex items-center gap-1.5">
-          <span id="inspect-iso" class="font-mono font-semibold text-[var(--foreground)]">ISO: IND</span>
-          <span class="px-1.5 py-0.5 rounded bg-[var(--primary)]/20 text-[var(--primary)] font-mono font-semibold" id="inspect-tld">.in / .co.in</span>
-        </div>
-        <span id="inspect-subregion" class="truncate ml-2">South Asia • #1 / 197</span>
-      </div>
-
-      <!-- Country Encyclopedia Profile (Scrollable) -->
-      <div class="mt-2.5 pt-2.5 border-t border-[var(--border)] custom-scroll overflow-y-auto space-y-2 text-xs pr-1">
-        <div class="grid grid-cols-2 gap-2">
-          <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
-            <div class="text-[var(--muted-foreground)] font-medium">Population</div>
-            <div class="font-semibold text-[var(--foreground)] mt-0.5" id="inspect-pop">1.44 Billion</div>
-          </div>
-          <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
-            <div class="text-[var(--muted-foreground)] font-medium">Total Area</div>
-            <div class="font-semibold text-[var(--foreground)] mt-0.5" id="inspect-area">3,287,263 km²</div>
-          </div>
+      <div id="inspector-body" class="mt-2.5 pt-2.5 border-t border-[var(--border)] flex flex-col min-h-0 overflow-hidden">
+        <!-- High-DPI Live Vector Flag Preview -->
+        <div class="relative rounded-lg overflow-hidden border border-[var(--border)] bg-black/20 flex items-center justify-center shrink-0">
+          <canvas id="flag-preview-canvas" width="480" height="270" class="w-full h-24 sm:h-28 object-cover"></canvas>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
-            <div class="text-[var(--muted-foreground)] font-medium">Main Language</div>
-            <div class="font-semibold text-[var(--foreground)] mt-0.5 leading-snug" id="inspect-lang">Hindi, English</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-[var(--muted-foreground)] shrink-0">
+          <div class="flex items-center gap-1.5">
+            <span id="inspect-iso" class="font-mono font-semibold text-[var(--foreground)]">ISO: IND</span>
+            <span class="px-1.5 py-0.5 rounded bg-[var(--primary)]/20 text-[var(--primary)] font-mono font-semibold" id="inspect-tld">.in / .co.in</span>
           </div>
-          <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
-            <div class="text-[var(--muted-foreground)] font-medium">Major Religion</div>
-            <div class="font-semibold text-[var(--foreground)] mt-0.5 leading-snug" id="inspect-rel">Hinduism (79.8%)</div>
-          </div>
+          <span id="inspect-subregion" class="truncate ml-2">South Asia • #1 / 198</span>
         </div>
 
-        <div class="p-2.5 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
-          <div class="text-[var(--primary)] font-semibold mb-0.5">Famous For</div>
-          <div class="text-[var(--foreground)] leading-relaxed" id="inspect-famous">Taj Mahal, Spices, Yoga, Bollywood & Space Tech (ISRO)</div>
-        </div>
+        <!-- Country Encyclopedia Profile (Scrollable) -->
+        <div class="mt-2 pt-2 border-t border-[var(--border)] custom-scroll overflow-y-auto max-h-[24vh] md:max-h-[calc(100vh-19.5rem)] space-y-2 text-xs pr-1">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
+              <div class="text-[var(--muted-foreground)] font-medium">Population</div>
+              <div class="font-semibold text-[var(--foreground)] mt-0.5" id="inspect-pop">1.44 Billion</div>
+            </div>
+            <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
+              <div class="text-[var(--muted-foreground)] font-medium">Total Area</div>
+              <div class="font-semibold text-[var(--foreground)] mt-0.5" id="inspect-area">3,287,263 km²</div>
+            </div>
+          </div>
 
-        <div class="p-2.5 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/30">
-          <div class="text-[var(--primary)] font-semibold mb-0.5">Fun Fact</div>
-          <div class="text-[var(--foreground)] leading-relaxed" id="inspect-fact">India invented the number zero, the decimal system, and the game of chess (Chaturanga).</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
+              <div class="text-[var(--muted-foreground)] font-medium">Main Language</div>
+              <div class="font-semibold text-[var(--foreground)] mt-0.5 leading-snug" id="inspect-lang">Hindi, English</div>
+            </div>
+            <div class="p-2 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
+              <div class="text-[var(--muted-foreground)] font-medium">Major Religion</div>
+              <div class="font-semibold text-[var(--foreground)] mt-0.5 leading-snug" id="inspect-rel">Hinduism (79.8%)</div>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]">
+            <div class="text-[var(--primary)] font-semibold mb-0.5">Famous For</div>
+            <div class="text-[var(--foreground)] leading-relaxed" id="inspect-famous">Taj Mahal, Spices, Yoga, Bollywood &amp; Space Tech (ISRO)</div>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/30">
+            <div class="text-[var(--primary)] font-semibold mb-0.5">Fun Fact</div>
+            <div class="text-[var(--foreground)] leading-relaxed" id="inspect-fact">India invented the number zero, the decimal system, and the game of chess (Chaturanga).</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Bottom Control Bar -->
-  <div class="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-10">
-    <div class="glass-panel border border-[var(--border)] rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-auto flex flex-wrap items-center gap-4">
-      <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)] cursor-pointer">
+  <div class="absolute bottom-2 left-2 right-2 md:bottom-3 md:left-3 md:right-3 flex items-center justify-between gap-2 pointer-events-none z-10">
+    <div class="glass-panel border border-[var(--border)] rounded-xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 shadow-lg pointer-events-auto flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar max-w-full">
+      <label class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--foreground)] cursor-pointer shrink-0">
         <input type="checkbox" id="toggle-autorotate" class="rounded accent-[var(--primary)]" />
         <span>Auto-Rotate</span>
       </label>
 
-      <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)] cursor-pointer">
+      <label class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--foreground)] cursor-pointer shrink-0">
         <input type="checkbox" id="toggle-borders" checked class="rounded accent-[var(--primary)]" />
         <span>Borders</span>
       </label>
 
-      <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)] cursor-pointer">
+      <label class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--foreground)] cursor-pointer shrink-0">
         <input type="checkbox" id="toggle-grid" checked class="rounded accent-[var(--primary)]" />
         <span>Graticule</span>
       </label>
 
-      <div class="flex items-center gap-2 text-xs font-medium text-[var(--foreground)]">
+      <div class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--foreground)] shrink-0">
         <span class="text-[var(--muted-foreground)]">Sun</span>
-        <input type="range" id="slider-sun" min="-180" max="180" value="35" class="w-20 accent-[var(--primary)] cursor-pointer" />
+        <input type="range" id="slider-sun" min="-180" max="180" value="35" class="w-14 sm:w-20 accent-[var(--primary)] cursor-pointer" />
       </div>
 
-      <div class="flex items-center gap-2 text-xs font-medium text-[var(--foreground)]">
+      <div class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--foreground)] shrink-0">
         <span class="text-[var(--muted-foreground)]">Zoom</span>
-        <input type="range" id="slider-zoom" min="135" max="420" value="225" class="w-20 accent-[var(--primary)] cursor-pointer" />
+        <input type="range" id="slider-zoom" min="135" max="420" value="225" class="w-14 sm:w-20 accent-[var(--primary)] cursor-pointer" />
       </div>
     </div>
 
-    <div class="glass-panel border border-[var(--border)] rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-auto text-xs text-[var(--muted-foreground)] hidden sm:block">
-      <span><strong>Drag</strong> to orbit • <strong>Scroll</strong> to zoom • <strong>Click</strong> any of the 197 countries</span>
+    <div class="glass-panel border border-[var(--border)] rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-auto text-xs text-[var(--muted-foreground)] hidden lg:block shrink-0">
+      <span><strong>Drag</strong> to orbit • <strong>Pinch / Scroll</strong> to zoom • <strong>Tap / Click</strong> any country</span>
     </div>
   </div>
 
@@ -2203,6 +2237,61 @@
 
     const previewCanvas = document.getElementById('flag-preview-canvas');
     const pctx = previewCanvas.getContext('2d');
+    const miniFlagCanvas = document.getElementById('mini-flag-canvas');
+    const mctx = miniFlagCanvas ? miniFlagCanvas.getContext('2d') : null;
+
+    // Panel Minimize / Expand State & Controls
+    let isDirectoryMinimized = false;
+    let isInspectorMinimized = false;
+    let isHeaderMinimized = false;
+
+    function setDirectoryMinimized(min) {
+      isDirectoryMinimized = Boolean(min);
+      const body = document.getElementById('directory-body');
+      const btn = document.getElementById('toggle-directory-btn');
+      if (body) body.classList.toggle('hidden', isDirectoryMinimized);
+      if (btn) btn.textContent = isDirectoryMinimized ? 'Expand ▸' : 'Minimize ▾';
+    }
+
+    function setInspectorMinimized(min) {
+      isInspectorMinimized = Boolean(min);
+      const body = document.getElementById('inspector-body');
+      const btn = document.getElementById('toggle-inspector-btn');
+      if (body) body.classList.toggle('hidden', isInspectorMinimized);
+      if (btn) btn.textContent = isInspectorMinimized ? 'Expand ▸' : 'Minimize ▾';
+    }
+
+    function setHeaderMinimized(min) {
+      isHeaderMinimized = Boolean(min);
+      const details = document.getElementById('header-details');
+      const btn = document.getElementById('toggle-header-btn');
+      if (details) details.classList.toggle('hidden', isHeaderMinimized);
+      if (btn) btn.textContent = isHeaderMinimized ? '▸' : '▾';
+    }
+
+    document.getElementById('toggle-directory-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      setDirectoryMinimized(!isDirectoryMinimized);
+    });
+    document.getElementById('directory-header').addEventListener('click', () => {
+      setDirectoryMinimized(!isDirectoryMinimized);
+    });
+    document.getElementById('toggle-inspector-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      setInspectorMinimized(!isInspectorMinimized);
+    });
+    document.getElementById('inspector-header-title').addEventListener('click', () => {
+      setInspectorMinimized(!isInspectorMinimized);
+    });
+    document.getElementById('toggle-header-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      setHeaderMinimized(!isHeaderMinimized);
+    });
+
+    // Mobile-friendly initial defaults: collapse directory on narrow screens so globe is unobstructed
+    if (window.innerWidth < 768) {
+      setDirectoryMinimized(true);
+    }
 
     function getCountryInfo(country) {
       const f = COUNTRY_FACTS[country.id];
@@ -2252,6 +2341,14 @@
       pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
       const extraCenter = { x: previewCanvas.width * 0.5, y: previewCanvas.height * 0.5 };
       drawCountryFlag(pctx, country, 0, 0, previewCanvas.width, previewCanvas.height, extraCenter);
+
+      if (mctx && miniFlagCanvas) {
+        mctx.clearRect(0, 0, miniFlagCanvas.width, miniFlagCanvas.height);
+        drawCountryFlag(mctx, country, 0, 0, miniFlagCanvas.width, miniFlagCanvas.height, {
+          x: miniFlagCanvas.width * 0.5,
+          y: miniFlagCanvas.height * 0.5
+        });
+      }
 
       if (flyTo) {
         state.targetLon = country.center[0];
@@ -2304,6 +2401,9 @@
         `;
         btn.addEventListener('click', () => {
           selectCountry(c, true);
+          if (window.innerWidth < 768) {
+            setDirectoryMinimized(true);
+          }
         });
         listEl.appendChild(btn);
       }
@@ -2409,18 +2509,45 @@
     }
 
     let pointerDownPos = { x: 0, y: 0 };
+    const activePointers = new Map();
+    let lastPinchDist = 0;
+    let wasPinching = false;
+
     canvas.addEventListener('pointerdown', (e) => {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       state.dragging = true;
       state.autoRotate = false;
       document.getElementById('toggle-autorotate').checked = false;
-      state.lastX = e.clientX;
-      state.lastY = e.clientY;
-      pointerDownPos = { x: e.clientX, y: e.clientY };
+      if (activePointers.size === 1) {
+        wasPinching = false;
+        state.lastX = e.clientX;
+        state.lastY = e.clientY;
+        pointerDownPos = { x: e.clientX, y: e.clientY };
+      } else if (activePointers.size === 2) {
+        wasPinching = true;
+        const pts = Array.from(activePointers.values());
+        lastPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      }
       canvas.setPointerCapture(e.pointerId);
     });
 
     canvas.addEventListener('pointermove', (e) => {
-      if (!state.dragging) return;
+      if (!activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 2) {
+        const pts = Array.from(activePointers.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (lastPinchDist > 0) {
+          const delta = lastPinchDist - dist;
+          state.targetDistance = Math.max(1.35, Math.min(4.2, state.targetDistance + delta * 0.006));
+          document.getElementById('slider-zoom').value = Math.round(state.targetDistance * 100);
+        }
+        lastPinchDist = dist;
+        return;
+      }
+
+      if (!state.dragging || activePointers.size !== 1) return;
       const dx = e.clientX - state.lastX;
       const dy = e.clientY - state.lastY;
       state.lastX = e.clientX;
@@ -2430,16 +2557,35 @@
       state.targetLat = Math.max(-78, Math.min(78, state.targetLat + dy * sensitivity));
     });
 
-    canvas.addEventListener('pointerup', (e) => {
-      state.dragging = false;
-      if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) < 5) {
-        const hit = pickGlobePoint(e.clientX, e.clientY);
-        if (hit) {
-          const found = findCountryAtLonLat(hit.lon, hit.lat);
-          if (found) selectCountry(found, true);
+    function handlePointerUpOrCancel(e) {
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) {
+        lastPinchDist = 0;
+      }
+      if (activePointers.size === 1) {
+        const remaining = Array.from(activePointers.values())[0];
+        state.lastX = remaining.x;
+        state.lastY = remaining.y;
+      }
+      if (activePointers.size === 0) {
+        state.dragging = false;
+        if (!wasPinching && Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) < 8) {
+          const hit = pickGlobePoint(e.clientX, e.clientY);
+          if (hit) {
+            const found = findCountryAtLonLat(hit.lon, hit.lat);
+            if (found) {
+              selectCountry(found, true);
+              if (window.innerWidth < 768) {
+                setDirectoryMinimized(true);
+              }
+            }
+          }
         }
       }
-    });
+    }
+
+    canvas.addEventListener('pointerup', handlePointerUpOrCancel);
+    canvas.addEventListener('pointercancel', handlePointerUpOrCancel);
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
